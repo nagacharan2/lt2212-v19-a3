@@ -3,6 +3,23 @@ import glob
 import argparse
 import numpy as np
 import pandas as pd
+import re
+from nltk import word_tokenize
+
+
+def unique_words(text):
+    uniq_words = {}    
+    words = re.findall('\w+', text)
+    uniq_words = set(words)
+    print(uniq_words)    
+    return uniq_words
+
+def pre_process(file_path):
+    text = []
+    lines = open(file_path).read()#.split("\n")
+    text = re.sub(r'/[^\s]+','',lines)
+    return(text)
+
 
 # gendata.py -- Don't forget to put a reasonable amount code comments
 # in so that we better understand what you're doing when we grade!
@@ -26,6 +43,8 @@ parser.add_argument("outputfile", type=str,
 args = parser.parse_args()
 
 print("Loading data from file {}.".format(args.inputfile))
+text = pre_process(args.inputfile)
+uniques = unique_words(text)
 print("Starting from line {}.".format(args.startline))
 if args.endline:
     print("Ending at line {}.".format(args.endline))
