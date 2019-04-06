@@ -5,12 +5,18 @@ import numpy as np
 import pandas as pd
 import re
 from nltk import word_tokenize
+from nltk.util import ngrams
 
 #creates vocabulary
 def unique_words(text):
-    uniq_words = {}    
-    words = re.findall('\w+', text)
-    uniq_words = set(words)
+    uniq_words = set()
+    for line in text:
+        words = re.findall('\w+', line)
+        line_words = set(words)
+        print(line_words)
+        uniq_words.update(line_words)
+        print("after update")
+        print(uniq_words)
 #    print(uniq_words)    
     return uniq_words
 
@@ -18,8 +24,12 @@ def unique_words(text):
 #removes all the POS tags
 def pre_process(file_path):
     text = []
-    lines = open(file_path).read()#.split("\n")
-    text = re.sub(r'/[^\s]+','',lines)
+    lines = open(file_path).read().split("\n")
+    for line in lines:
+        if len(line) != 0:
+            line2 = re.sub(r'\/[^\s]+','',line)
+            text.append(line2)
+#     print(text)
     return(text)
 
 
@@ -34,8 +44,47 @@ def one_hot_encoding(uniquewords):
     print(one_hot_vectors)
     return one_hot_vectors
 
-#implement ngram model
+def generate_ngrams(s, n):
+    # Convert to lowercases
+    s = s.lower()
     
+    # Replace all none alphanumeric characters with spaces
+    s = re.sub(r'[^a-zA-Z0-9\s]', ' ', s)
+    
+    # Break sentence in the token, remove empty tokens
+    tokens = [token for token in s.split(" ") if token != ""]
+    
+    # Use the zip function to help us generate n-grams
+    # Concatentate the tokens into ngrams and return
+    ngrams = zip(*[tokens[i:] for i in range(n)])
+    return [" ".join(ngram) for ngram in ngrams]
+
+#implement ngram model
+def n_gram_model(text, one_hot_vectors, n=3):
+    ngrams_model = []
+    print(text)
+    # print(one_hot_vectors)
+    for line in text:
+        n_grams = generate_ngrams(line,n)
+        print(n_grams)
+        for grams in n_grams:
+            print(grams)
+            new_gram = grams.split(" ")
+            temp = []
+            for num in range(len(new_gram)):
+                if num == n-1:
+                    temp.append(new_gram[num])
+                else:
+                    temp += one_hot_vectors[new_gram[num]]
+                ngrams_model.append(temp) 
+    print(ngrams_model)
+    return pd.DataFrame(ngrams_model)
+    # for gram in n_grams:
+    #     print(gram)
+        
+
+
+
 
 # gendata.py -- Don't forget to put a reasonable amount code comments
 # in so that we better understand what you're doing when we grade!
@@ -60,15 +109,29 @@ args = parser.parse_args()
 
 print("Loading data from file {}.".format(args.inputfile))
 text = pre_process(args.inputfile)
-uniques = unique_words(text)
-one_hot = one_hot_encoding(uniques)
+
 print("Starting from line {}.".format(args.startline))
+
 if args.endline:
+    if args.startline:
+        text = text[args.startline:args.endline]
+    else:
+        text = text[:args.endline]
     print("Ending at line {}.".format(args.endline))
 else:
+    if args.startline:
+        text = text[args.startline:]
     print("Ending at last line of file.")
+print(text)
+uniques = unique_words(text)
+one_hot = one_hot_encoding(uniques)
+
+
+ngram_model_test = n_gram_model(text, one_hot, n=args.ngram)
+#print(ngram_model_test.head())
 
 print("Constructing {}-gram model.".format(args.ngram))
+
 print("Writing table to {}.".format(args.outputfile))
     
 # THERE ARE SOME CORNER CASES YOU HAVE TO DEAL WITH GIVEN THE INPUT
