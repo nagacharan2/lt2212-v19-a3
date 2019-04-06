@@ -64,14 +64,16 @@ def generate_ngrams(s, n):
 def n_gram_model(text, one_hot_vectors, n=3):
     ngrams_model = []
     print(text)
-    # print(one_hot_vectors)
+    # Take each line in text
     for line in text:
         n_grams = generate_ngrams(line,n)
-        print(n_grams)
+#        print(n_grams)
+#for each ngram
         for grams in n_grams:
             print(grams)
             new_gram = grams.split(" ")
             temp = []
+#taking each gram in ngram
             for num,gram in enumerate(new_gram):
                 if num == n-1:
                     temp.append(gram)
@@ -79,6 +81,7 @@ def n_gram_model(text, one_hot_vectors, n=3):
                     temp.extend(one_hot_vectors[gram])
             ngrams_model.append(temp) 
     print(ngrams_model)
+    
     return pd.DataFrame(ngrams_model)
     # for gram in n_grams:
     #     print(gram)
