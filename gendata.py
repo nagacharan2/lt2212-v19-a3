@@ -6,6 +6,7 @@ import pandas as pd
 import re
 from nltk import word_tokenize
 from nltk.util import ngrams
+import random
 
 #creates vocabulary
 def unique_words(text):
@@ -71,12 +72,12 @@ def n_gram_model(text, one_hot_vectors, n=3):
             print(grams)
             new_gram = grams.split(" ")
             temp = []
-            for num in range(len(new_gram)):
+            for num,gram in enumerate(new_gram):
                 if num == n-1:
-                    temp.append(new_gram[num])
+                    temp.append(gram)
                 else:
-                    temp += one_hot_vectors[new_gram[num]]
-                ngrams_model.append(temp) 
+                    temp.extend(one_hot_vectors[gram])
+            ngrams_model.append(temp) 
     print(ngrams_model)
     return pd.DataFrame(ngrams_model)
     # for gram in n_grams:
@@ -106,6 +107,10 @@ parser.add_argument("outputfile", type=str,
                     help="The name of the output file for the feature table.")
 
 args = parser.parse_args()
+if args.ngram:
+    if args.ngram < 2:
+        print(" ngrams cannot be less that 2")
+        exit(1)
 
 print("Loading data from file {}.".format(args.inputfile))
 text = pre_process(args.inputfile)
@@ -114,6 +119,9 @@ print("Starting from line {}.".format(args.startline))
 
 if args.endline:
     if args.startline:
+        if args.startline > args.endline:
+            print(" start line cannot be greater than endline")
+            exit(1)
         text = text[args.startline:args.endline]
     else:
         text = text[:args.endline]
@@ -123,13 +131,25 @@ else:
         text = text[args.startline:]
     print("Ending at last line of file.")
 print(text)
-uniques = unique_words(text)
-one_hot = one_hot_encoding(uniques)
+
+random.shuffle(text)
+lines = round(len(text)/2)
+training_data = text[lines:]
+testing_data = text[:lines]
+
+train_vocab = unique_words(training_data)
+train_one_hot = one_hot_encoding(train_vocab)
 
 
-ngram_model_test = n_gram_model(text, one_hot, n=args.ngram)
-#print(ngram_model_test.head())
+test_vocab = unique_words(testing_data)
+test_one_hot = one_hot_encoding(test_vocab)
 
+
+data_train = n_gram_model(training_data, train_one_hot, n=args.ngram)
+data_test = n_gram_model(testing_data,test_one_hot,n=args.ngram)
+
+data_train.to_csv('train_'+ args.outputfile+'.csv')
+data_test.to_csv('test_'+ args.outputfile+'.csv')
 print("Constructing {}-gram model.".format(args.ngram))
 
 print("Writing table to {}.".format(args.outputfile))
