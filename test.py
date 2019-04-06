@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import pickle
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
 
 # test.py -- Don't forget to put a reasonable amount code comments
 # in so that we better understand what you're doing when we grade!
@@ -20,9 +21,23 @@ parser.add_argument("modelfile", type=str,
 args = parser.parse_args()
 
 print("Loading data from file {}.".format(args.datafile))
+#read data from file
+dataframe = pd.read_csv(args.datafile)
+
+#labels
+Y = list(dataframe[dataframe.columns[-1]])
+
+print(dataframe[:-1])
+#features
+X = dataframe.drop(dataframe.columns[-1], axis =1)
+
 print("Loading model from file {}.".format(args.modelfile))
+clf = pickle.load(open(args.modelfile, 'rb'))
+
 
 print("Testing {}-gram model.".format(args.ngram))
 
-print("Accuracy is ...")
-print("Perplexity is...")
+prediction = clf.predict(X)
+
+
+print("Accuracy is ... {}.".format(accuracy_score(Y, prediction)))

@@ -132,21 +132,19 @@ else:
     print("Ending at last line of file.")
 print(text)
 
+
+vocab = unique_words(text)
+one_hot = one_hot_encoding(vocab)
+
+
 random.shuffle(text)
 lines = round(len(text)/2)
 training_data = text[lines:]
 testing_data = text[:lines]
 
-train_vocab = unique_words(training_data)
-train_one_hot = one_hot_encoding(train_vocab)
 
-
-test_vocab = unique_words(testing_data)
-test_one_hot = one_hot_encoding(test_vocab)
-
-
-data_train = n_gram_model(training_data, train_one_hot, n=args.ngram)
-data_test = n_gram_model(testing_data,test_one_hot,n=args.ngram)
+data_train = n_gram_model(training_data, one_hot, n=args.ngram)
+data_test = n_gram_model(testing_data,one_hot,n=args.ngram)
 
 data_train.to_csv('train_'+ args.outputfile+'.csv')
 data_test.to_csv('test_'+ args.outputfile+'.csv')

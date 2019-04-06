@@ -20,8 +20,21 @@ parser.add_argument("modelfile", type=str,
 args = parser.parse_args()
 
 print("Loading data from file {}.".format(args.datafile))
+#read data from file
+dataframe = pd.read_csv(args.datafile)
 print("Training {}-gram model.".format(args.ngram))
+#labels
+Y = list(dataframe[dataframe.columns[-1]])
+
+
+#features
+X = dataframe.drop(dataframe.columns[-1], axis =1)
+#training the classifier
+clf = LogisticRegression(multi_class = 'multinomial',solver='lbfgs').fit(X,Y)
+
+pickle.dump(clf,open(args.modelfile, 'wb'))
 print("Writing table to {}.".format(args.modelfile))
+
 
 # YOU WILL HAVE TO FIGURE OUT SOME WAY TO INTERPRET THE FEATURES YOU CREATED.
 # IT COULD INCLUDE CREATING AN EXTRA COMMAND-LINE ARGUMENT OR CLEVER COLUMN
